@@ -68,15 +68,73 @@ class NetworkDevice(Resource):
         dev_version = self.args["dev_version"]
 
         dh = DeviceHandler()
+        if not dh.model_valid(dev_model):
+            msg = (
+                f"Model is invalid. Expected one of the following: "
+                f"{', '.join(dh.get_valid_models())}"
+            )
+            return {"dev_model": msg}, HTTPStatus.BAD_REQUEST
+
         dh.load_devices()
         success, msg = dh.create_device(dev_id, dev_model, dev_version)
         dh.write_devices()
         status = HTTPStatus.CREATED if success else HTTPStatus.BAD_REQUEST
         return {"message": msg}, status
 
+    def patch(self, dev_id):
+        """
+        Update one or more device fields.
+        :param dev_id: <str> ID of the device to update
+        ---
+        POST to /networkdevice/<string:dev_id>
+        {
+            "dev_fqdn": <str>,
+            "dev_model": <str>,
+            "dev_version": <str>
+        }
+        """
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument(
+            "dev_fqdn",
+            type=str,
+            required=False,
+            help="The FQDN of the device",
+            location="json",
+        )
+        self.parser.add_argument(
+            "dev_model",
+            type=str,
+            required=False,
+            help="The model of the device",
+            location="json",
+        )
+        self.parser.add_argument(
+            "dev_version",
+            type=str,
+            required=False,
+            help="The version of the device",
+            location="json",
+        )
+        self.args = self.parser.parse_args()
+        dh = DeviceHandler()
+        dev_model = self.args["dev_model"]
+        if dev_model and not dh.model_valid(dev_model):
+            msg = (
+                f"Model is invalid. Expected one of the following: "
+                f"{', '.join(dh.get_valid_models())}"
+            )
+            return {"dev_model": msg}, HTTPStatus.BAD_REQUEST
+
+        dh.load_devices()
+        success, msg = dh.update_device_by_id(dev_id, self.args)
+        dh.write_devices()
+        status = HTTPStatus.ACCEPTED if success else HTTPStatus.BAD_REQUEST
+        return {"message": msg}, status
+
     def delete(self, dev_id):
         """
         Deletes a network device by UUID
+        :param dev_id: <str> ID of the device to update
         """
         dh = DeviceHandler()
         dh.load_devices()
