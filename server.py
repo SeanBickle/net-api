@@ -71,7 +71,7 @@ class NetworkDevice(Resource):
         dh.load_devices()
         success, msg = dh.delete_device_by_id(dev_id)
         dh.write_devices()
-        status = HTTPStatus.ACCEPTED if success else HTTPStatus.BAD_REQUEST
+        status = HTTPStatus.ACCEPTED if success else HTTPStatus.NOT_FOUND
         return {"message": msg}, status
 
 
