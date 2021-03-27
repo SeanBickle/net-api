@@ -6,7 +6,7 @@ class DeviceHandler:
     def __init__(self):
         self.devices_filename = "devices.json"
         self.devices = {}
-        self.valid_models = ["ios-xr", "ios-xe", "nx-os"]
+        self.__valid_models = ["ios-xr", "ios-xe", "nx-os"]
 
     def load_devices(self):
         """
@@ -37,13 +37,19 @@ class DeviceHandler:
                 return True
         return False
 
-    def _model_valid(self, model):
+    def model_valid(self, model):
         """
         Checks the input model is one of the valid values
         :param model: <str> Model to check
         :return: <bool> Model validity
         """
-        return model in self.valid_models
+        return model in self.__valid_models
+
+    def get_valid_models(self):
+        """
+        :return: <list> Valid device models
+        """
+        return self.__valid_models
 
     def _create_uuid(self):
         return str(uuid.uuid4())
@@ -52,7 +58,7 @@ class DeviceHandler:
         """
         Formats device into standard structure
         """
-        return {"dev_fqdn": fqdn, "dev_model": model, "version": version}
+        return {"dev_fqdn": fqdn, "dev_model": model, "dev_version": version}
 
     def create_device(self, fqdn, model, version):
         """
@@ -64,11 +70,6 @@ class DeviceHandler:
         """
         if self._fqdn_exists(fqdn):
             return False, f"FQDN {fqdn} already exists"
-        if not self._model_valid(model):
-            return False, (
-                f"Model {model} is invalid. Expected one of the following: "
-                f"{', '.join(self.valid_models)}"
-            )
         dev_uuid = self._create_uuid()
         self.devices[dev_uuid] = self._format_device(fqdn, model, version)
         return True, f"Created device {fqdn} ({dev_uuid})"
@@ -88,6 +89,21 @@ class DeviceHandler:
         :return: <dict> Device detail
         """
         return self.devices.get(dev_id, {})
+
+    def update_device_by_id(self, dev_id, dev_data):
+        """
+        Updates a single device. Skip fields with a None value, these have not
+        been specified by the user.
+        :param dev_id: <str> UUID of target device
+        :param dev_data: <dict> Device data of fields to update
+        :return: <bool> Success, <str> message
+        """
+        if dev_id not in self.devices:
+            return False, f"Device {dev_id} does not exist"
+        for field, value in dev_data.items():
+            if value and field in self.devices[dev_id]:
+                self.devices[dev_id][field] = value
+        return True, f"Updated device {dev_id}"
 
     def delete_device_by_id(self, dev_id):
         """
