@@ -1,6 +1,8 @@
 from flask import Flask
-from flask_restful import Api, Resource
+from flask_restful import Api, Resource, reqparse
 from http import HTTPStatus
+
+from utils import DeviceHandler
 
 
 app = Flask(__name__)
@@ -12,7 +14,46 @@ class Index(Resource):
         return {"message": "Net API is running"}, HTTPStatus.OK
 
 
+class NetworkDevice(Resource):
+    def post(self, dev_fqdn):
+        """
+        Creates a new network device.
+        ---
+        POST to /networkdevice/<string:dev_fqdn>
+        {
+            "dev_model": <str>,
+            "dev_version": <str>
+        }
+        """
+        self.parser = reqparse.RequestParser()
+        self.parser.add_argument(
+            "dev_model",
+            type=str,
+            required=True,
+            help="A device model is required, e.g. ios-xe",
+            location="json",
+        )
+        self.parser.add_argument(
+            "dev_version",
+            type=str,
+            required=True,
+            help="A device version is required",
+            location="json",
+        )
+        self.args = self.parser.parse_args()
+        dev_model = self.args["dev_model"]
+        dev_version = self.args["dev_version"]
+
+        dh = DeviceHandler()
+        dh.load_devices()
+        success, msg = dh.create_device(dev_fqdn, dev_model, dev_version)
+        dh.write_devices()
+        status = HTTPStatus.CREATED if success else HTTPStatus.BAD_REQUEST
+        return {"message": msg}, status
+
+
 api.add_resource(Index, "/")
+api.add_resource(NetworkDevice, "/networkdevices/<string:dev_fqdn>")
 
 
 if __name__ == "__main__":
