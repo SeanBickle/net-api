@@ -80,3 +80,14 @@ class DeviceHandler:
         :return: <dict> Device detail
         """
         return self.devices.get(dev_id, {})
+
+    def delete_device_by_id(self, dev_id):
+        """
+        Deletes a single device.
+        :param dev_id: <str> UUID of target device
+        :return: <bool> Success, <str> message
+        """
+        if dev_id not in self.devices:
+            return False, f"Device {dev_id} does not exist"
+        del self.devices[dev_id]
+        return True, f"Deleted device {dev_id}"

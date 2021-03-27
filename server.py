@@ -17,7 +17,7 @@ class Index(Resource):
 class NetworkDevice(Resource):
     def get(self, dev_id):
         """
-        Gets a network device.
+        Gets a network device by UUID.
         :param dev_id: <str> Unique identifier of the device
         """
         dh = DeviceHandler()
@@ -61,6 +61,17 @@ class NetworkDevice(Resource):
         success, msg = dh.create_device(dev_id, dev_model, dev_version)
         dh.write_devices()
         status = HTTPStatus.CREATED if success else HTTPStatus.BAD_REQUEST
+        return {"message": msg}, status
+
+    def delete(self, dev_id):
+        """
+        Deletes a network device by UUID
+        """
+        dh = DeviceHandler()
+        dh.load_devices()
+        success, msg = dh.delete_device_by_id(dev_id)
+        dh.write_devices()
+        status = HTTPStatus.ACCEPTED if success else HTTPStatus.BAD_REQUEST
         return {"message": msg}, status
 
 
