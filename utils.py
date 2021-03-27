@@ -72,3 +72,11 @@ class DeviceHandler:
         dev_uuid = self._create_uuid()
         self.devices[dev_uuid] = self._format_device(fqdn, model, version)
         return True, f"Created device {fqdn} ({dev_uuid})"
+
+    def get_device_by_id(self, dev_id):
+        """
+        Get a single device
+        :param dev_id: <str> UUID of the target device
+        :return: <dict> Device detail
+        """
+        return self.devices.get(dev_id, {})
