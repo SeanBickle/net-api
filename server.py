@@ -14,6 +14,17 @@ class Index(Resource):
         return {"message": "Net API is running"}, HTTPStatus.OK
 
 
+class NetworkDevices(Resource):
+    def get(self):
+        """
+        List all network devices.
+        """
+        dh = DeviceHandler()
+        dh.load_devices()
+        devices = dh.get_devices()
+        return {"networkdevices": devices}, HTTPStatus.OK
+
+
 class NetworkDevice(Resource):
     def get(self, dev_id):
         """
@@ -76,6 +87,7 @@ class NetworkDevice(Resource):
 
 
 api.add_resource(Index, "/")
+api.add_resource(NetworkDevices, "/networkdevices")
 api.add_resource(NetworkDevice, "/networkdevices/<string:dev_id>")
 
 

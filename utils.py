@@ -73,6 +73,14 @@ class DeviceHandler:
         self.devices[dev_uuid] = self._format_device(fqdn, model, version)
         return True, f"Created device {fqdn} ({dev_uuid})"
 
+    def get_devices(self):
+        """
+        Gets all network devices. For now, this just returns the contents
+        of the devices file.
+        :return: <dict> Network devices
+        """
+        return self.devices
+
     def get_device_by_id(self, dev_id):
         """
         Get a single device
